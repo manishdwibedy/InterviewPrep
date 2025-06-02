@@ -218,3 +218,214 @@ Lambda functions are event-driven and can be triggered by a wide array of AWS se
 
 21. **Bonus Question: How would you design an end-to-end serverless workflow that uses Lambda along with S3, SQS, and API Gateway, including error handling and retries?**
     * Provide a blueprint describing how an upload to S3 can trigger a Lambda function for processing, how SQS can buffer failed messages for retry, and how API Gateway can expose REST endpoints. Also mention using DLQs to capture persistent failures.
+
+
+
+
+
+# AWS EC2: Notes & Common Interview Questions
+
+## Overview and Basic Concept
+
+* **AWS EC2 (Elastic Compute Cloud)** is AWS’s core compute service that provides resizable **virtual servers** (known as **instances**) in the cloud.
+* It offers on-demand access to compute resources, allowing you to scale up or down based on workload requirements.
+* **Use Cases Include:**
+    * Deploying web servers, application servers, and databases.
+    * Running high-performance computing (HPC), big data analytics, or machine learning (ML) workloads.
+    * Prototyping and hosting virtually any application environment.
+
+---
+
+## Instance Types and Pricing Models
+
+### Instance Types
+
+Choose from a variety of families based on the workload:
+
+* **General Purpose:** Balanced CPU and memory (e.g., `t3`, `m5`). Great for typical web servers and dev/test environments.
+* **Compute Optimized:** High CPU performance (e.g., `c5`). Ideal for compute-intensive applications, batch processing, and high-performance web servers.
+* **Memory Optimized:** Heavy memory workloads (e.g., `r5`). Suited for high-performance databases, distributed web-scale in-memory caches, and real-time big data analytics.
+* **Accelerated Computing (GPU Instances):** Designed for graphics-intensive and deep learning tasks (e.g., `p3`, `g4dn`).
+* **Storage Optimized:** High sequential read/write access to large datasets on local storage (e.g., `i3`, `d2`). Good for NoSQL databases, data warehousing, and distributed file systems.
+
+### Pricing Models
+
+* **On-Demand Instances:** Pay by the hour (or second for Linux) with zero long-term commitments. Ideal for unpredictable workloads, development/test environments, or applications with short-term, spiky usage.
+* **Reserved Instances (RIs):** Significant discounts (up to 72%) for committing to a 1-year or 3-year term.
+    * **Standard RIs:** Highest discount, but inflexible for instance type/OS changes.
+    * **Convertible RIs:** Slightly less discount but allow changes to instance family, OS, and tenancy.
+    * **Scheduled RIs:** Reserve capacity for specific recurring time windows.
+* **Spot Instances:** Bid for spare EC2 capacity at significantly lower prices (up to 90% off On-Demand).
+    * **Volatile:** Instances can be terminated by AWS with a two-minute warning if the Spot price exceeds your bid or if capacity is no longer available.
+    * Suitable for fault-tolerant, flexible applications like batch processing, data analysis, and stateless web servers.
+* **Dedicated Instances/Hosts:** Run on isolated physical servers for licensing requirements (e.g., bring-your-own-license scenarios) or strict regulatory compliance.
+    * **Dedicated Instances:** Your instances are physically isolated at the host hardware level.
+    * **Dedicated Hosts:** Gives you visibility and control over the specific physical server where your instances run.
+
+---
+
+## Key Components & Launch Process
+
+* **AMIs (Amazon Machine Images):** Pre-configured templates that contain the operating system, software, and other configurations needed to launch an instance. You can use AWS-provided AMIs, AWS Marketplace AMIs, or create your own custom AMIs.
+* **Key Pair for SSH:** A set of cryptographic keys (public and private) used to establish secure remote access to Linux instances (via SSH) or to decrypt the administrator password for Windows instances (for RDP). You hold the private key, AWS stores the public key.
+
+### Launching an Instance Typically Involves:
+
+* Selecting the desired **AMI**.
+* Choosing an **instance type** that suits your compute, memory, or storage requirements.
+* Configuring **network settings**, including selecting a Virtual Private Cloud (VPC), subnets (public/private), and assigning **security groups**.
+* Attaching **storage** (EBS volumes for persistent storage, or ephemeral instance store volumes).
+* Configuring advanced options like IAM roles, user data scripts (for initial setup), and monitoring.
+* Reviewing pricing details and potential cost savings with reservations.
+* Launching via the **AWS Management Console, AWS CLI, AWS SDKs, or Infrastructure-as-Code tools** (e.g., CloudFormation, Terraform).
+
+---
+
+## Networking & Security
+
+* **Virtual Private Cloud (VPC):**
+    * Provides isolated networking environments within AWS with defined subnets, IP address ranges, and routing tables.
+    * You customize configurations for public (internet-facing) and private (internal) resources.
+    * Essential for organizing your network logically and securely.
+* **Security Groups:**
+    * Act as **virtual firewalls** to control inbound and outbound network traffic at the instance level.
+    * They are stateful, meaning if you allow inbound traffic, the outbound response is automatically allowed.
+    * Crucial for ensuring that only necessary ports and protocols are are accessible as per your application’s requirements (e.g., Port 22 for SSH, Port 80/443 for HTTP/S).
+* **Network Access Control Lists (Network ACLs):**
+    * Optional, stateless firewalls that control traffic at the subnet level.
+    * Less granular than security groups, but can add an additional layer of security.
+* **IAM Roles & Instance Profiles:**
+    * Grant permissions to your instances securely **without using static credentials** (like API keys directly on the instance).
+    * Use IAM roles to allow your EC2 instances to securely interact with other AWS services (e.g., read from S3, write to DynamoDB, send logs to CloudWatch).
+    * An **instance profile** is a container for an IAM role that you can attach to an EC2 instance.
+
+---
+
+## Storage Options
+
+* **Elastic Block Store (EBS) Volumes:**
+    * Provides durable, **block-level storage** that can be attached to an EC2 instance.
+    * Persists independently of the instance's lifespan (i.e., data remains even if the instance is stopped or terminated).
+    * Can be backed up using **EBS Snapshots** to S3.
+    * Available in several volume types:
+        * **SSD-backed:** General Purpose SSD (`gp2`/`gp3` - balanced price/performance), Provisioned IOPS SSD (`io1`/`io2` - highest performance for critical workloads).
+        * **HDD-backed:** Throughput Optimized HDD (`st1` - good for frequently accessed, throughput-intensive workloads), Cold HDD (`sc1` - lowest cost for less frequently accessed data).
+* **Instance Stores:**
+    * Offer **temporary block storage** directly attached to the host computer that houses the EC2 instance.
+    * Provide very high I/O performance.
+    * **Ephemeral:** Data is lost if the instance is stopped, terminated, or if there’s an underlying hardware failure. Not suitable for persistent data.
+* **Amazon S3 (Simple Storage Service):**
+    * While not directly attached like EBS or Instance Store, S3 is **object storage** often used with EC2 for static assets, backups, data lakes, or as a source/destination for applications running on EC2.
+* **Amazon EFS (Elastic File System):**
+    * A **scalable, shared file system** that can be mounted by multiple EC2 instances simultaneously (even across Availability Zones). Ideal for workloads that require shared file access (e.g., content management systems, dev environments).
+
+---
+
+## Monitoring & Management
+
+* **Amazon CloudWatch:**
+    * The primary monitoring and observability service for AWS resources.
+    * Monitor system performance metrics for EC2 instances like **CPU utilization, disk I/O, network usage, and instance status checks**.
+    * Set up **alarms** to trigger notifications (e.g., via SNS) or automated responses (e.g., stopping an instance) when thresholds are breached.
+    * Collects **logs** from your EC2 instances (with the CloudWatch Agent).
+* **Auto Scaling Groups (ASG):**
+    * Automatically adjust the number of EC2 instances in response to changing demand.
+    * Ensures **high availability** (by replacing unhealthy instances) and **cost efficiency** (by scaling out during peak times and scaling in during low usage).
+    * Works seamlessly with **Elastic Load Balancers (ELB)** to evenly distribute incoming traffic across healthy instances in the ASG.
+* **AWS Systems Manager:**
+    * Offers comprehensive management and automation capabilities for operating your instances, both EC2 and on-premises.
+    * Features include: **Patch Manager** (for OS updates), **Run Command** (for remote execution of scripts), **Session Manager** (secure shell access without opening SSH ports), and **State Manager** (for configuring instance state).
+
+---
+
+## Best Practices
+
+* **Select the Right Instance Type:**
+    * Analyze workload patterns (CPU, memory, storage, network requirements) to optimize for compute, memory, or GPU requirements.
+    * Start small and scale up (or out) as needed. Resize or deploy multiple instances (with ASGs) as suited by performance and cost considerations.
+* **Minimize Idle Resources:**
+    * Implement strategies to stop or terminate instances that are not in use (e.g., during off-hours for dev environments) to avoid unnecessary charges.
+    * Leverage Auto Scaling and Load Balancers to manage instance count dynamically and align with actual demand.
+* **Secure with Best Practices:**
+    * Use the **principle of least privilege** when assigning IAM roles to instances.
+    * Regularly review and update Security Group rules to follow "deny all by default" and only open necessary ports to trusted IP ranges.
+    * Disable public IP addresses for instances that don't need direct internet access; route through NAT Gateways for outbound access from private subnets.
+    * Leverage **AWS Trusted Advisor** for recommendations on cost optimization, security, and performance.
+* **Clean Up and Documentation:**
+    * Maintain **Infrastructure as Code (IaC)** templates (e.g., CloudFormation, Terraform) to standardize instance provisioning and ensure consistency.
+    * Regularly review and clean up unused instances, AMIs, snapshots, and EBS volumes to reduce clutter and recurring costs.
+    * Implement **tagging strategies** for better resource organization, cost allocation, and automation.
+
+---
+
+## Summary
+
+Amazon EC2 is a flexible, scalable service that forms the backbone of many AWS applications. By choosing the right instance types, implementing robust security measures, using managed networking and storage resources, and monitoring applications closely, you can ensure that your EC2 usage is both cost-effective and highly performant. Whether your workload is short-lived or needs always-on resources, EC2’s versatile pricing and configurations make it a must-have resource in the cloud.
+
+
+
+# Common Interview Questions for AWS EC2
+
+Here are 20 common interview or discussion questions regarding **Amazon EC2 (Elastic Compute Cloud)**:
+
+---
+
+1.  **What is Amazon EC2, and how does it simplify cloud computing compared to traditional on-premise servers?**
+    * Expect a description of **EC2** as AWS’s virtual server service that provides resizable compute capacity in the cloud, reducing the overhead of buying and managing physical hardware.
+
+2.  **Can you explain what an Amazon Machine Image (AMI) is and how you would use it when launching an EC2 instance?**
+    * This question covers **AMIs** as pre-configured templates (including OS, application server, and security patches) used to rapidly launch new instances.
+
+3.  **What are the different EC2 pricing models, and how do On-Demand, Reserved, and Spot Instances differ?**
+    * Clarify that **On-Demand** is pay-as-you-go, **Reserved Instances** give discounts for long-term usage, and **Spot Instances** are available at lower prices with no long-term commitment (but risk termination).
+
+4.  **Describe some of the primary EC2 instance families and give examples for workloads such as compute-optimized, memory-optimized, or GPU-intensive tasks.**
+    * You might mention families like `c5` (compute), `r5` (memory), and `p3` (GPU), explaining that each is optimized for specific needs.
+
+5.  **When would you choose a Spot Instance over an On-Demand Instance, and what are the trade-offs?**
+    * Discuss how **Spot Instances** are ideal for fault-tolerant, interruptible tasks with lower costs, while **On-Demand** is better for predictable workloads.
+
+6.  **Explain how you manage network security for EC2 instances using Security Groups and Network ACLs.**
+    * Note that **Security Groups** (stateful) control ingress and egress traffic at the instance level while **Network ACLs** (stateless) offer another layer of security at the subnet level.
+
+7.  **What is a Virtual Private Cloud (VPC), and why is it important when provisioning EC2 instances?**
+    * A **VPC** helps isolate resources by enabling you to launch resources into a defined virtual network, choosing IP address ranges, subnets, and controlling access.
+
+8.  **How do you differentiate between EBS (Elastic Block Store) volumes and instance store volumes, and what are the implications for data persistence and performance?**
+    * **EBS volumes** offer persistent, attachable storage (with features like snapshot and encryption) while **instance store** is temporary storage tied to the life of the instance.
+
+9.  **What is Auto Scaling, and how does it contribute to managing workloads on EC2?**
+    * **Auto Scaling** automatically adjusts the number of EC2 instances based on traffic, ensuring performance during high demand and cost savings during low usage periods.
+
+10. **How does Elastic Load Balancing (ELB) work in conjunction with EC2 to distribute workload and affect high availability?**
+    * An **ELB** distributes network traffic among instances in multiple availability zones, enhancing availability and handling spikes in application load.
+
+11. **What are Launch Templates, and how do they improve the management of EC2 instances in larger deployments?**
+    * **Launch Templates** allow you to define a template for instance configuration—instance type, security groups, key pairs, etc.—to streamline launches and updates.
+
+12. **Describe best practices for monitoring and managing EC2 instance performance. Which AWS services might you use?**
+    * Mention tools such as **Amazon CloudWatch** for collecting logs, metrics, and setting alarms to track CPU utilization, memory, network, and disk performance.
+
+13. **How do you ensure high availability of EC2-based applications?**
+    * Answers can include tactics like deploying instances across multiple **Availability Zones**, using **Auto Scaling**, **ELB**, and redundancy in application architecture.
+
+14. **What are some key considerations for capacity planning when deploying applications on EC2?**
+    * Examine factors such as instance sizing, network throughput, workloads (spike handling), redundancy, and predictable vs. unpredictable traffic patterns.
+
+15. **Explain the typical lifecycle steps—provisioning, launching, monitoring, and termination—of an EC2 instance.**
+    * A discussion on how to set up an instance, assign necessary resources, monitor performance, and eventually decommission when no longer needed to avoid unnecessary costs.
+
+16. **How would you handle a smooth upgrade or scaling change (for example, changing an instance type or configuration) with minimal downtime?**
+    * This might include strategies like **blue/green deployments**, using **Auto Scaling**, or leveraging **Elastic IPs** and load balancers to shift traffic gradually.
+
+17. **What best practices should be applied to secure your EC2 instances, especially regarding remote access (SSH/HTTPS) and access control?**
+    * Secure key management, limiting SSH access by IP using **Security Groups**, using **EC2 Key Pairs**, employing **IAM roles** for permissions, and following the **principle of least privilege**.
+
+18. **Why might you choose to use Dedicated Hosts or Dedicated Instances for some workloads, and what are the situations where a Placement Group might be useful?**
+    * **Dedicated Hosts** might be required for compliance reasons or to use existing server-bound software licenses, and **Placement Groups** (Cluster, Spread, Partition) help control latency and resilience.
+
+19. **In what ways can you optimize the cost of EC2 deployments, especially for large-scale or unpredictable workloads?**
+    * Strategies include using a mix of **Spot** and **Reserved Instances**, proper **Auto Scaling**, right-sizing instances, and leveraging tools like **AWS Cost Explorer** and **Trusted Advisor** for insights.
+
+20. **Can you outline how you would migrate an on-premise application to EC2? What factors would you consider during this transition?**
+    * Expect an answer discussing resource sizing, network requirements, security implementations, testing, and possibly refactoring the application to suit a cloud environment.
