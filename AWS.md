@@ -5,10 +5,15 @@ Here's a list of the top 15-20 AWS services that are most commonly used and cruc
 I. Core Compute & Serverless:
 
 AWS Lambda: Serverless compute for event-driven functions.
+
 Amazon EC2 (Elastic Compute Cloud): Virtual servers for full control over compute environments.
+
 Amazon ECS (Elastic Container Service) / AWS Fargate: Container orchestration service (ECS) with a serverless compute engine for containers (Fargate).
+
 Amazon EKS (Elastic Kubernetes Service): Managed Kubernetes service for container orchestration.
+
 AWS Elastic Beanstalk: Platform as a Service (PaaS) for quick deployment and management of web applications.
+
 II. Databases:
 
 Amazon RDS (Relational Database Service): Managed relational databases (MySQL, PostgreSQL, Aurora, etc.).
